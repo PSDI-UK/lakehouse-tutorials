@@ -1,2 +1,3 @@
 .env
 .venv
+notebooks/jupyter/.ipynb_checkpoints/
