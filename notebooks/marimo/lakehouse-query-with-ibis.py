@@ -1,10 +1,10 @@
 # /// script
-# dependencies = ["ibis-framework", "pandas", "trino"]
+# dependencies = ["ibis-framework", "trino"]
 # ///
 
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.5"
 app = marimo.App()
 
 
@@ -50,8 +50,7 @@ def _(mo):
     In this notebook we will use:
 
     - `ibis` for the query API,
-    - `trino` for the underlying Trino connection,
-    - and `pandas` for displaying tabular results nicely.
+    - `trino` for the underlying Trino connection
 
     You can install them via `pip`:
     """)
@@ -60,7 +59,7 @@ def _(mo):
 
 @app.cell
 def _():
-    # packages added via marimo's package management: ibis-framework[trino] trino pandas !pip install -q "ibis-framework[trino]" trino pandas
+    # packages added via marimo's package management: ibis-framework[trino] trino !pip install -q "ibis-framework[trino]" trino
     return
 
 
@@ -74,7 +73,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import pandas as pd
     from pprint import pprint  # Used for clearer output in the tutorial
 
     import ibis
@@ -98,22 +96,28 @@ def _(mo):
 
 @app.cell
 def _(Backend, OAuth2Authentication, connect):
-    TRINO_HOST = "trino-dev.psdi.ac.uk"
+    TRINO_HOST = "trino-staging.psdi.ac.uk"
 
     conn = connect(
         host=TRINO_HOST,
         port=443,
         http_scheme="https",
         auth=OAuth2Authentication(),
-        catalog="lakekeeper",
+        catalog="psdi",
         request_timeout=300,
     )
 
     # Hand the live Trino connection to Ibis
     con = Backend.from_connection(conn)
-
-    print("\nConnected to the lakehouse successfully!")
     return con, conn
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Note that authentication is only triggered when you first execute a query through this connection.
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -121,14 +125,16 @@ def _(mo):
     mo.md(r"""
     ## 4. First checks
 
-    Before exploring the data, it is useful to confirm that the connection works and that Ibis can access the catalog. To do this, let us list the available databases in the lakekeeper catalog:
+    Before exploring the data, it is useful to confirm that the connection works and that Ibis can access the catalog. To do this, let us list the available databases in the `psdi` catalog.
+
+    When you execute this query for the first time, you will be prompted to authenticate via the PSDI authentication system. You can use your institutional credentials for this. A browser window will open automatically for the authentication step.
     """)
     return
 
 
 @app.cell
 def _(con):
-    con.list_databases(catalog="lakekeeper")
+    con.list_databases(catalog="psdi")
     return
 
 
@@ -146,12 +152,6 @@ def _(mo):
     **catalog → database → table**
 
     As you can see, the Trino *schema* corresponds to what Ibis calls a *database*.
-
-    So in this notebook:
-
-    - Trino `catalog` = Ibis catalog = `lakekeeper`
-    - Trino `schema` = Ibis `database`
-    - Trino `table` = Ibis `table`
     """)
     return
 
@@ -167,7 +167,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    As we specified `catalog="lakekeeper"` when establishing the connection, it can be omitted in in subsequent queries.
+    This can be done using `list_databases()`. As we specified `catalog="psdi"` when establishing the connection, the catalog name can be omitted from subsequent queries:
     """)
     return
 
@@ -212,7 +212,7 @@ def _(con, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 7. Load a table as an Ibis expression
+    ## 8. Load a table as an Ibis expression
 
     `con.table(...)` returns an Ibis table expression.
 
@@ -223,23 +223,23 @@ def _(mo):
 
 @app.cell
 def _(con):
-    table = con.table("absorption_flattened", database="materials_project")
-    return (table,)
+    dielectric_table = con.table("dielectric_flattened", database="materials_project")
+    return (dielectric_table,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 8. Inspect column names and schema
+    ## 9. Inspect column names and schema
 
-    `table.schema()` returns the Ibis schema:
+    `.schema()` returns the Ibis schema:
     """)
     return
 
 
 @app.cell
-def _(table):
-    table_schema = table.schema()
+def _(dielectric_table):
+    table_schema = dielectric_table.schema()
     print(table_schema)
     return (table_schema,)
 
@@ -262,18 +262,18 @@ def _(table_schema):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 9. Preview rows
+    ## 10. Preview rows
 
     A quick preview is often the fastest way to understand a table.
 
-    Use `head()` to request only the first few rows, then call `to_pandas()` or `execute()` to materialize the result.
+    Use `head()` to request only the first two rows, then call `to_pandas()` or `execute()` to materialize the result.
     """)
     return
 
 
 @app.cell
-def _(table):
-    preview = table.head(5).to_pandas()
+def _(dielectric_table):
+    preview = dielectric_table.head(2).to_pandas()
     print(preview)
     return
 
@@ -289,8 +289,8 @@ def _(mo):
 
 
 @app.cell
-def _(table):
-    preview_1 = table.limit(2).execute()
+def _(dielectric_table):
+    preview_1 = dielectric_table.limit(2).execute()
     print(preview_1)
     return
 
@@ -298,7 +298,7 @@ def _(table):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 10. Count rows in a table
+    ## 11. Count rows in a table
 
     Because Ibis expressions are lazy, the count is only computed when you execute the expression.
     """)
@@ -306,15 +306,15 @@ def _(mo):
 
 
 @app.cell
-def _(table):
-    table.count().execute()
+def _(dielectric_table):
+    dielectric_table.count().execute()
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 11. A few common Ibis patterns
+    ## 12. A few common Ibis patterns
 
     Once you can discover and preview tables, the next step is usually to write real queries.
 
@@ -329,7 +329,7 @@ def _(mo):
     Example shape:
 
     ```python
-    t = con.table("my_table", database=("lakekeeper", "my_database"))
+    t = con.table("my_table", database=("psdi", "my_database"))
 
     result = (
         t
@@ -340,6 +340,8 @@ def _(mo):
 
     df = result.to_pandas()
     ```
+
+    Note that all expressions that end with `.execute()` or `.to_pandas()` return a pandas DataFrame. Without one of these calls, the result is a lazy ibis expression - the query is built but not yet run against the database.
     """)
     return
 
@@ -347,7 +349,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 12. OMol25 example
+    ## 13. OMol25 example
 
     Below are some example analytical queries for the OMol25 dataset.
 
@@ -358,14 +360,14 @@ def _(mo):
 
 @app.cell
 def _(con):
-    table_1 = con.table('omol25', database='omol25')
-    return (table_1,)
+    omol25_table = con.table("omol25", database="omol25")
+    return (omol25_table,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 12.1 Selecting columns
+    ## 13.1 Selecting columns
 
     Select only a subset of columns:
     """)
@@ -373,15 +375,15 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.select('composition', 'num_atoms').limit(2).execute()
+def _(omol25_table):
+    omol25_table.select("composition", "num_atoms").limit(2).execute()
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### 12.2 Filtering rows
+    ### 13.2 Filtering rows
 
     Get molecules with a defined (non-null) energy:
     """)
@@ -389,8 +391,8 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.filter(table_1.nl_energy.notnull()).limit(2).execute()
+def _(omol25_table):
+    omol25_table.filter(omol25_table.nl_energy.notnull()).limit(2).execute()
     return
 
 
@@ -405,15 +407,17 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.filter(table_1.nl_energy.notnull() & (table_1.num_atoms > 10)).select('composition', 'num_atoms', 'nl_energy').limit(2).execute()
+def _(omol25_table):
+    omol25_table.filter(
+        (omol25_table.nl_energy.notnull()) & (omol25_table.num_atoms > 10)
+    ).select("composition", "num_atoms", "nl_energy").limit(2).execute()
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### 12.3 Aggregation (group by)
+    ### 13.3 Aggregation (group by)
 
     Get molecules with a defined (non-null) energy:
     """)
@@ -421,8 +425,15 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.group_by(table_1.num_atoms).agg(count=table_1.count()).order_by(table_1.num_atoms).limit(3).execute()
+def _(omol25_table):
+    (
+        omol25_table
+        .group_by(omol25_table.num_atoms)
+        .agg(count=omol25_table.count())
+        .order_by(omol25_table.num_atoms)
+        .limit(3)
+        .execute()
+    )
     return
 
 
@@ -431,7 +442,7 @@ def _(mo):
     mo.md(r"""
     ---
 
-    ### 12.4 Sorting results
+    ### 13.4 Sorting results
 
     Find molecules with the highest energy:
     """)
@@ -439,8 +450,15 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.filter(table_1.nl_energy.notnull()).select('composition', 'nl_energy').order_by(table_1.nl_energy.desc()).limit(3).execute()
+def _(omol25_table):
+    (
+        omol25_table
+        .filter(omol25_table.nl_energy.notnull())
+        .select("composition", "nl_energy")
+        .order_by(omol25_table.nl_energy.desc())
+        .limit(3)
+        .execute()
+    )
     return
 
 
@@ -449,14 +467,21 @@ def _(mo):
     mo.md(r"""
     ---
 
-    ### 12.5 Most common compositions
+    ### 13.5 Most common compositions
     """)
     return
 
 
 @app.cell
-def _(table_1):
-    table_1.group_by(table_1.composition).agg(count=table_1.count()).order_by(lambda x: x['count'].desc()).limit(5).execute()
+def _(omol25_table):
+    (
+        omol25_table
+        .group_by(omol25_table.composition)
+        .agg(count=omol25_table.count())
+        .order_by(lambda x: x["count"].desc())
+        .limit(4)
+        .execute()
+    )
     return
 
 
@@ -465,7 +490,7 @@ def _(mo):
     mo.md(r"""
     ---
 
-    ### 12.6 Basic statistics
+    ### 13.6 Basic statistics
 
     Compute min, max, and average energy:
     """)
@@ -473,15 +498,24 @@ def _(mo):
 
 
 @app.cell
-def _(table_1):
-    table_1.filter(table_1.nl_energy.notnull()).aggregate(min_nl=table_1.nl_energy.min(), max_nl=table_1.nl_energy.max(), avg_nl=table_1.nl_energy.mean()).execute()
+def _(omol25_table):
+    (
+        omol25_table
+        .filter(omol25_table.nl_energy.notnull())
+        .aggregate(
+            min_nl=omol25_table.nl_energy.min(),
+            max_nl=omol25_table.nl_energy.max(),
+            avg_nl=omol25_table.nl_energy.mean(),
+        )
+        .execute()
+    )
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 13. Notes for users (important)
+    ## 14. Notes for users (important)
 
     Analytical queries may take time on large lakehouse tables.
 
@@ -497,7 +531,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 14. Close the connection
+    ## 15. Close the connection
 
     It is good practice to close your connection to Trino when it is not not longer needed, as each open connection holds server-side resources. You can do this by running:
     """)
