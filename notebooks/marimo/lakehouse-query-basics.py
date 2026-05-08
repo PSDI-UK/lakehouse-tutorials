@@ -4,7 +4,7 @@
 
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.5"
 app = marimo.App()
 
 
@@ -88,14 +88,14 @@ def _(OAuth2Authentication, connect):
             port=443,
             http_scheme="https",
             auth=OAuth2Authentication(),
-            catalog="lakekeeper",
+            catalog="psdi",
             request_timeout=300,
         )
     
         cursor = conn.cursor()
 
         # Validate the connection
-        cursor.execute("SHOW SCHEMAS FROM lakekeeper")
+        cursor.execute("SHOW SCHEMAS FROM psdi")
         cursor.fetchone()
     
         print("\nConnected to Trino successfully!")
@@ -117,7 +117,7 @@ def _(mo):
 
     **catalog** --> **schema** --> **table**
 
-    - **catalog**: a data source for Trino (in our case, `lakekeeper`)
+    - **catalog**: a data source for Trino (in our case, `psdi`)
     - **schema**: corresponds to a *dataset* (e.g. `omol25`, `materials_project`)
     - **table**: a structured collection of records within a dataset (e.g. `alloy_pairs`)
 
@@ -125,7 +125,7 @@ def _(mo):
 
     **Catalog**
 
-    The catalog name in our case is `lakekeeper`. It is specified when establishing the connection (`catalog="lakekeeper"`), so it can usually be omitted in queries.
+    The catalog name in our case is `psdi`. It is specified when establishing the connection (`catalog="psdi"`), so it can usually be omitted in queries.
 
     ---
 
@@ -135,8 +135,8 @@ def _(mo):
     (or just `<schema_name>` if the catalog is already set).
 
     Examples of schema names:
-    - `lakekeeper.omol25`
-    - `lakekeeper.materials_project`
+    - `psdi.omol25`
+    - `psdi.materials_project`
 
     ---
 
@@ -146,9 +146,9 @@ def _(mo):
     (or `<schema_name>.<table_name>` if the catalog is already set).
 
     Examples of table names:
-    - `lakekeeper.omol25.omol25`
-    - `lakekeeper.materials_project.absorption_flattened`
-    - `lakekeeper.materials_project.alloys_flattened`
+    - `psdi.omol25.omol25`
+    - `psdi.materials_project.absorption_flattened`
+    - `psdi.materials_project.alloys_flattened`
     """)
     return
 
@@ -187,7 +187,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_1:
-        cursor_1.execute('SHOW SCHEMAS FROM lakekeeper')
+        cursor_1.execute('SHOW SCHEMAS FROM psdi')
         schemas = cursor_1.fetchall()
         exclude = {'information_schema', 'system'}
         datasets = [s[0] for s in schemas if s[0] not in exclude]  # Exclude system schemas
@@ -198,7 +198,7 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that we haven't inluded the catalog name, `lakekeeper`, in the query as it was specified when establishing the connection. However, you can optionally include it by using the command `SHOW SCHEMAS FROM lakekeeper`.
+    Note that we haven't inluded the catalog name, `psdi`, in the query as it was specified when establishing the connection. However, you can optionally include it by using the command `SHOW SCHEMAS FROM psdi`.
     """)
     return
 
@@ -218,7 +218,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_2:
-        cursor_2.execute('SHOW TABLES FROM lakekeeper.materials_project')
+        cursor_2.execute('SHOW TABLES FROM psdi.materials_project')
         tables = cursor_2.fetchall()
         pprint(tables)
     return
@@ -235,7 +235,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_3:
-        cursor_3.execute('SHOW TABLES FROM lakekeeper.omol25')
+        cursor_3.execute('SHOW TABLES FROM psdi.omol25')
         tables_1 = cursor_3.fetchall()
         pprint(tables_1)
     return
@@ -255,7 +255,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_4:
-        cursor_4.execute('DESCRIBE lakekeeper.omol25.omol25')
+        cursor_4.execute('DESCRIBE psdi.omol25.omol25')
         columns = cursor_4.fetchall()
         pprint(columns)
     return
@@ -292,7 +292,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_5:
-        cursor_5.execute('SELECT * FROM lakekeeper.omol25.omol25 LIMIT 1')
+        cursor_5.execute('SELECT * FROM psdi.omol25.omol25 LIMIT 1')
         rows = cursor_5.fetchall()
         pprint(rows)
     return
@@ -323,7 +323,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_6:
-        cursor_6.execute('SELECT COUNT(*) FROM lakekeeper.omol25.omol25')
+        cursor_6.execute('SELECT COUNT(*) FROM psdi.omol25.omol25')
         rows_1 = cursor_6.fetchone()  # fetchone() returns a single tuple like (1234,)
         print('Row count:', rows_1[0])
     return
@@ -352,12 +352,12 @@ def _(mo):
 
     ```sql
     SELECT *
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     LIMIT 5
     ```
     ```sql
     SELECT column_name_a, column_name_b
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     LIMIT 5
     ```
 
@@ -365,7 +365,7 @@ def _(mo):
     Counts the number of rows in a table or within a group.
     ```sql
     SELECT COUNT(*)
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     ```
 
     **`GROUP BY`**
@@ -375,7 +375,7 @@ def _(mo):
     Example: count how many entries exist for each element:
     ```sql
     SELECT column_name_a, COUNT(*)
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     GROUP BY column_name_a
     ```
 
@@ -383,7 +383,7 @@ def _(mo):
     Sorts the results of a query.
     ```sql
     SELECT column_name_a, COUNT(*) AS count
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     GROUP BY column_name_a
     ORDER BY count DESC
     ```
@@ -397,7 +397,7 @@ def _(mo):
     For example, to find the most common elements:
     ```sql
     SELECT column_name_a, COUNT(*) AS count
-    FROM lakekeeper.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.alloy_pairs_flattened
     GROUP BY column_name_a
     ORDER BY count DESC
     LIMIT 10
@@ -432,7 +432,7 @@ def _(mo):
     It groups rows by the `num_atoms` column and counts how many molecules fall into each group.
 
     - `SELECT`: Specifies the columns to return. Here, it also calculates the number of occurrences using `COUNT(*)`.
-    - `FROM`: Indicates the source table (`lakekeeper.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
     - `GROUP BY num_atoms`: Aggregates rows that have the same number of atoms.
     - `COUNT(*)`: Counts how many rows (molecules) are in each group.
     - `ORDER BY num_atoms`: Sorts the results in ascending order of the number of atoms.
@@ -443,7 +443,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_7:
-        cursor_7.execute('\n    SELECT num_atoms, COUNT(*)\n    FROM lakekeeper.omol25.omol25\n    GROUP BY num_atoms\n    ORDER BY num_atoms\n    ')
+        cursor_7.execute('\n    SELECT num_atoms, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY num_atoms\n    ORDER BY num_atoms\n    ')
         for row in cursor_7.fetchall():
             print(row)
     return
@@ -459,7 +459,7 @@ def _(mo):
     It groups molecules by the charge column and counts how many molecules fall into each charge category.
 
     - `SELECT`: Specifies the columns to return. Here, it selects the `charge` column and also calculates the number of occurrences using `COUNT(*)`.
-    - `FROM`: Indicates the source table (`lakekeeper.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
     - `GROUP BY charge`: Collects all rows with the same charge value.
     - `COUNT(*)`: Computes how many molecules are in each charge group.
     - `ORDER BY charge`: Sorts results from lowest to highest charge.
@@ -470,7 +470,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_8:
-        cursor_8.execute('\n    SELECT charge, COUNT(*)\n    FROM lakekeeper.omol25.omol25\n    GROUP BY charge\n    ORDER BY charge\n    ')
+        cursor_8.execute('\n    SELECT charge, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY charge\n    ORDER BY charge\n    ')
         for row_1 in cursor_8.fetchall():
             print(row_1)
     return
@@ -482,12 +482,12 @@ def _(mo):
     ---
     ### 4.3 Most common compositions
 
-    The query retrieves the 20 most frequent values of the composition column from the `lakekeeper.omol25.omol25` table.
+    The query retrieves the 20 most frequent values of the composition column from the `psdi.omol25.omol25` table.
 
     It uses several standard SQL commands:
 
     - `SELECT`: Specifies the columns to return. Here, it selects `composition` and calculates the number of occurrences using `COUNT(*)`, aliased as `count`.
-    - `FROM`: Indicates the source table (`lakekeeper.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
     - `GROUP BY`: Groups rows by composition so that the count can be computed for each unique value.
     - `ORDER BY`: Sorts the results in descending order based on the computed count. `DESC` means the results are ordered from highest to lowest.
     - `LIMIT 5`: Restricts the output to the top 5 results.
@@ -498,7 +498,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_9:
-        cursor_9.execute('\n    SELECT composition, COUNT(*) AS count\n    FROM lakekeeper.omol25.omol25\n    GROUP BY composition\n    ORDER BY count DESC\n    LIMIT 5\n    ')
+        cursor_9.execute('\n    SELECT composition, COUNT(*) AS count\n    FROM psdi.omol25.omol25\n    GROUP BY composition\n    ORDER BY count DESC\n    LIMIT 5\n    ')
         for row_2 in cursor_9.fetchall():
             print(row_2)
     return
@@ -510,13 +510,13 @@ def _(mo):
     ---
     ### 4.4 NL energy stats
 
-    This query calculates basic statistics for the `nl_energy` column in the `lakekeeper.omol25.omol25` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
+    This query calculates basic statistics for the `nl_energy` column in the `psdi.omol25.omol25` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
 
     1. `SELECT`: Specifies the values to return. Here, it computes aggregate statistics and returns them as aliases `(min_nl, max_nl, avg_nl)`:
         - `MIN(nl_energy)` --> the smallest value
         - `MAX(nl_energy)` --> the largest value
         - `AVG(nl_energy)` --> the average value
-    2. `FROM`: Indicates the source table (`lakekeeper.omol25.omol25`).
+    2. `FROM`: Indicates the source table (`psdi.omol25.omol25`).
     3. `WHERE`: Filters out rows where `nl_energy` is `NULL`, ensuring that only valid numeric values are used in the calculations.
     """)
     return
@@ -525,7 +525,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_10:
-        cursor_10.execute('\n    SELECT\n        MIN(nl_energy) AS min_nl,\n        MAX(nl_energy) AS max_nl,\n        AVG(nl_energy) AS avg_nl\n    FROM lakekeeper.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    ')
+        cursor_10.execute('\n    SELECT\n        MIN(nl_energy) AS min_nl,\n        MAX(nl_energy) AS max_nl,\n        AVG(nl_energy) AS avg_nl\n    FROM psdi.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    ')
         print('Min, max and average energies:')
         print(cursor_10.fetchone())
     return
@@ -539,7 +539,7 @@ def _(mo):
 
     When working with large datasets, it is inefficient to load all rows into memory. Instead, you should perform heavy computations (such as grouping and aggregation) in Trino, and use `pandas` only for lightweight post-processing of the reduced result set.
 
-    The query below retrieves a small sample of rows (non-null `nl_energy` values) from the `lakekeeper.omol25.omol25` table. The result is then loaded into a pandas DataFrame for further analysis.
+    The query below retrieves a small sample of rows (non-null `nl_energy` values) from the `psdi.omol25.omol25` table. The result is then loaded into a pandas DataFrame for further analysis.
     """)
     return
 
@@ -547,7 +547,7 @@ def _(mo):
 @app.cell
 def _(conn, pd):
     with conn.cursor() as cursor_11:
-        cursor_11.execute('\n    SELECT composition, nl_energy\n    FROM lakekeeper.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    LIMIT 100\n    ')
+        cursor_11.execute('\n    SELECT composition, nl_energy\n    FROM psdi.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    LIMIT 100\n    ')
         df = pd.DataFrame(cursor_11.fetchall(), columns=[col[0] for col in cursor_11.description])
     print(df.head())
     # Print top rows
@@ -588,7 +588,7 @@ def _(OAuth2Authentication, TRINO_HOST, connect):
                 port=443,
                 http_scheme="https",
                 auth=OAuth2Authentication(),
-                catalog="lakekeeper",
+                catalog="psdi",
                 request_timeout=300,
             )
 
@@ -619,7 +619,7 @@ def _(get_connection):
     TRINO_HOST_1 = 'trino-dev.psdi.ac.uk'
     with get_connection(TRINO_HOST_1) as conn_1:
         with conn_1.cursor() as cursor_12:
-            cursor_12.execute('SHOW SCHEMAS FROM lakekeeper')
+            cursor_12.execute('SHOW SCHEMAS FROM psdi')
             schemas_1 = cursor_12.fetchall()
             print(schemas_1)
     return
