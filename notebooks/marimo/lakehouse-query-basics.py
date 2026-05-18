@@ -1,5 +1,5 @@
 # /// script
-# dependencies = ["pandas", "trino"]
+# dependencies = ["matplotlib", "pandas", "trino"]
 # ///
 
 import marimo
@@ -26,8 +26,8 @@ def _(mo):
 
     - connecting to Trino with PSDI authentication,
     - discovering schemas and tables,
-    - running simple SQL queries,
-    - and working through examples using the parsed [OMol25](adf) dataset.
+    - running simple [SQL](https://en.wikipedia.org/wiki/SQL) queries,
+    - and working through examples using the parsed [OMol25](https://arxiv.org/abs/2505.08762) dataset.
     """)
     return
 
@@ -44,7 +44,7 @@ def _(mo):
 
 @app.cell
 def _():
-    # packages added via marimo's package management: trino pandas !pip install -q trino pandas
+    # packages added via marimo's package management: trino pandas matplotlib !pip install -q trino pandas matplotlib
     return
 
 
@@ -60,12 +60,12 @@ def _(mo):
 def _():
     from pprint import pprint  # Used for clearer output in the tutorial
 
+    import matplotlib.pyplot as plt
     import pandas as pd
-
     from trino.dbapi import connect
     from trino.auth import OAuth2Authentication
 
-    return OAuth2Authentication, connect, pd, pprint
+    return OAuth2Authentication, connect, pd, plt, pprint
 
 
 @app.cell(hide_code=True)
@@ -73,7 +73,7 @@ def _(mo):
     mo.md(r"""
     ## 1. Connect to Trino
 
-    Run the cell below to open a connection. At the first run, you will be prompted to authenticate via the PSDI Authentification system in your browser.
+    Run the cell below to open a connection. At the first run, you will be prompted to authenticate via the PSDI Authentication System in your browser.
     """)
     return
 
@@ -125,7 +125,7 @@ def _(mo):
 
     **Catalog**
 
-    The catalog name in our case is `psdi`. It is specified when establishing the connection (`catalog="psdi"`), so it can usually be omitted in queries.
+    The catalog name in our case is `psdi`. It is specified when establishing the connection (`catalog="psdi"`), so it can optionally be omitted in queries.
 
     ---
 
@@ -156,20 +156,15 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### 2.2 General pattern for executing commands
-
-    To execute SQL queries, you first need to create a **cursor object**, which represents an active SQL session. The recommended approach is to use a context manager:
-
-    ```python
-    with conn.cursor() as cursor:
-        cursor.execute("<SQL coomand>")
-        result = cursor.fetchall()
-    ```
-
-    Within the context manager:
-    - `cursor.execute("<SQL command>")`: sends a SQL command to Trino for execution.
-    - `cursor.fetchall()`: retrieves all results returned by Trino.
     ---
+
+    ### 2.2 What is SQL?
+
+    [SQL (Structured Query Language)](https://en.wikipedia.org/wiki/SQL) is commonly used to query and analyze structured data stored in databases and lakehouses. It provides a standard way to retrieve, filter, aggregate, and organize data using declarative queries.
+
+    In SQL, keywords such as `SELECT`, `FROM`, `WHERE`, and `GROUP BY` are conventionally written in uppercase to improve readability. Table names, column names, and other identifiers are commonly written in lowercase. SQL queries are typically written across multiple lines to make them easier to read and understand.
+
+    For example:
     """)
     return
 
@@ -177,9 +172,51 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### 2.3 Listing available schemas
+    ```SQL
+    SELECT formula, band_gap
+    FROM psdi.materials_project.materials
+    WHERE band_gap > 1.0
+    LIMIT 5
+    ```
+    This query:
 
-    The following code lists all available schemas (i.e. datasets), excluding system ones:
+    - selects the columns `formula` and `band_gap`
+    - reads data from the materials table
+    - filters rows where the band gap is larger than 1.0
+    - returns only the first 5 matching rows
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ### 2.3 General pattern for executing commands
+
+    To execute SQL queries, you first need to create a **cursor object**, which represents an active SQL session. The recommended approach is to use a context manager:
+
+    ```python
+    with conn.cursor() as cursor:
+        # Send SQL command to Trino for execution
+        cursor.execute("<SQL coomand>")
+
+        # Retrieve all results returned by Trino
+        result = cursor.fetchall()
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ### 2.4 Listing available schemas
+
+    This can be done using the SQL query `"SHOW SCHEMAS FROM psdi"`. Here is an example:
     """)
     return
 
@@ -189,8 +226,7 @@ def _(conn, pprint):
     with conn.cursor() as cursor_1:
         cursor_1.execute('SHOW SCHEMAS FROM psdi')
         schemas = cursor_1.fetchall()
-        exclude = {'information_schema', 'system'}
-        datasets = [s[0] for s in schemas if s[0] not in exclude]  # Exclude system schemas
+        datasets = [schema[0] for schema in schemas]
         pprint(datasets)
     return
 
@@ -198,7 +234,7 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that we haven't inluded the catalog name, `psdi`, in the query as it was specified when establishing the connection. However, you can optionally include it by using the command `SHOW SCHEMAS FROM psdi`.
+    Note that `information_schema` and `system` are system-level schemas and do not contain meaningful user data.
     """)
     return
 
@@ -208,7 +244,7 @@ def _(mo):
     mo.md(r"""
     ---
 
-    ### 2.4 Listing available tables within a schema
+    ### 2.5 Listing available tables within a schema
 
     Now let's have a closer look at the tables inside a particular schema, for example `materials_project`.
     """)
@@ -245,7 +281,7 @@ def _(conn, pprint):
 def _(mo):
     mo.md(r"""
     ---
-    ### 2.5 Explore columns from a specific table
+    ### 2.6 Explore columns from a specific table
 
     To inspect column names and types in the specific table, you can run the `DESCRIBE` command followed by `<schema_name>.<table_name>`, for example:
     """)
@@ -279,12 +315,14 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ---
-    ### 2.6 Previewing data from a table
+    ### 2.7 Previewing data from a table
 
     To inspect a table, it is often useful to display a small number of rows.
     This can be done using the `SELECT` statement together with `LIMIT`.
 
-    For example, the following query returns a single row from the `omol25.omol25` table:
+    In SQL, the * symbol after `SELECT` means "select all columns" from the table.
+
+    For example, the following query returns a single row from the `psdi.omol25.omol25` table, including all available columns:
     """)
     return
 
@@ -301,8 +339,19 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Here:
+    - `SELECT *` returns all columns
+    - `FROM psdi.omol25.omol25` specifies the table
+    - `LIMIT 1` restricts the output to one row only
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
-    ### 2.7 Counting rows in a table
+    ### 2.8 Counting rows in a table
 
     To count rows, you can use the following command
     ```python
@@ -352,12 +401,12 @@ def _(mo):
 
     ```sql
     SELECT *
-    FROM psdi.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.absorption_flattened
     LIMIT 5
     ```
     ```sql
-    SELECT column_name_a, column_name_b
-    FROM psdi.materials_project.alloy_pairs_flattened
+    SELECT nsites, formula_pretty
+    FROM psdi.materials_project.absorption_flattened
     LIMIT 5
     ```
 
@@ -365,7 +414,7 @@ def _(mo):
     Counts the number of rows in a table or within a group.
     ```sql
     SELECT COUNT(*)
-    FROM psdi.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.absorption_flattened
     ```
 
     **`GROUP BY`**
@@ -374,17 +423,17 @@ def _(mo):
 
     Example: count how many entries exist for each element:
     ```sql
-    SELECT column_name_a, COUNT(*)
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT nsites, COUNT(*)
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY nsites
     ```
 
     **`ORDER BY`**
     Sorts the results of a query.
     ```sql
-    SELECT column_name_a, COUNT(*) AS count
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT nsites, COUNT(*) AS count
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY nsites
     ORDER BY count DESC
     ```
 
@@ -392,13 +441,14 @@ def _(mo):
     - DESC --> descending order
 
     **Putting it all together**
+
     These commands are often combined to answer questions about the data.
 
     For example, to find the most common elements:
     ```sql
-    SELECT column_name_a, COUNT(*) AS count
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT formula_pretty, COUNT(*) AS count
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY formula_pretty
     ORDER BY count DESC
     LIMIT 10
     ```
@@ -417,6 +467,8 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ## 4. OMol25 example
+
+    [OMol25](https://arxiv.org/abs/2505.08762) is a large-scale molecular dataset containing computational data for organic molecules.
 
     Below are some example analytical queries for the OMol25 dataset.
     """)
@@ -444,8 +496,30 @@ def _(mo):
 def _(conn):
     with conn.cursor() as cursor_7:
         cursor_7.execute('\n    SELECT num_atoms, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY num_atoms\n    ORDER BY num_atoms\n    ')
-        for row in cursor_7.fetchall():
-            print(row)
+        data = cursor_7.fetchall()
+        print('Data fetched successfully.')
+    return (data,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Now, let's plot the data using `matplotlib`.
+    """)
+    return
+
+
+@app.cell
+def _(data, plt):
+    # Unzip the tuples into two separate lists: (num_atoms, counts)
+    num_atoms, counts = zip(*data)
+
+    plt.figure(figsize=(6, 4))
+    plt.bar(num_atoms, counts, color="teal")
+    plt.xlabel("Number of Atoms")
+    plt.ylabel("Count")
+    plt.title("Atom Distribution")
+    plt.show()
     return
 
 
@@ -471,8 +545,8 @@ def _(mo):
 def _(conn):
     with conn.cursor() as cursor_8:
         cursor_8.execute('\n    SELECT charge, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY charge\n    ORDER BY charge\n    ')
-        for row_1 in cursor_8.fetchall():
-            print(row_1)
+        for row in cursor_8.fetchall():
+            print(row)
     return
 
 
@@ -499,8 +573,8 @@ def _(mo):
 def _(conn):
     with conn.cursor() as cursor_9:
         cursor_9.execute('\n    SELECT composition, COUNT(*) AS count\n    FROM psdi.omol25.omol25\n    GROUP BY composition\n    ORDER BY count DESC\n    LIMIT 5\n    ')
-        for row_2 in cursor_9.fetchall():
-            print(row_2)
+        for row_1 in cursor_9.fetchall():
+            print(row_1)
     return
 
 
@@ -508,9 +582,9 @@ def _(conn):
 def _(mo):
     mo.md(r"""
     ---
-    ### 4.4 NL energy stats
+    ### 4.4 Non-local correlation energy statistics
 
-    This query calculates basic statistics for the `nl_energy` column in the `psdi.omol25.omol25` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
+    This query calculates basic statistics for the non-local correlation energy column, `nl_energy`, in the `psdi.omol25.omol25` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
 
     1. `SELECT`: Specifies the values to return. Here, it computes aggregate statistics and returns them as aliases `(min_nl, max_nl, avg_nl)`:
         - `MIN(nl_energy)` --> the smallest value
@@ -616,7 +690,7 @@ def _(mo):
 
 @app.cell
 def _(get_connection):
-    TRINO_HOST_1 = 'trino-dev.psdi.ac.uk'
+    TRINO_HOST_1 = 'trino-staging.psdi.ac.uk'
     with get_connection(TRINO_HOST_1) as conn_1:
         with conn_1.cursor() as cursor_12:
             cursor_12.execute('SHOW SCHEMAS FROM psdi')
