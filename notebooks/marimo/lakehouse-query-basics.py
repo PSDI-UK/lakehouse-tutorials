@@ -180,7 +180,7 @@ def _(mo):
     ```
     This query:
 
-    - selects the columns formula and band_gap
+    - selects the columns `formula` and `band_gap`
     - reads data from the materials table
     - filters rows where the band gap is larger than 1.0
     - returns only the first 5 matching rows
@@ -401,12 +401,12 @@ def _(mo):
 
     ```sql
     SELECT *
-    FROM psdi.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.absorption_flattened
     LIMIT 5
     ```
     ```sql
-    SELECT column_name_a, column_name_b
-    FROM psdi.materials_project.alloy_pairs_flattened
+    SELECT nsites, formula_pretty
+    FROM psdi.materials_project.absorption_flattened
     LIMIT 5
     ```
 
@@ -414,7 +414,7 @@ def _(mo):
     Counts the number of rows in a table or within a group.
     ```sql
     SELECT COUNT(*)
-    FROM psdi.materials_project.alloy_pairs_flattened
+    FROM psdi.materials_project.absorption_flattened
     ```
 
     **`GROUP BY`**
@@ -423,17 +423,17 @@ def _(mo):
 
     Example: count how many entries exist for each element:
     ```sql
-    SELECT column_name_a, COUNT(*)
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT nsites, COUNT(*)
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY nsites
     ```
 
     **`ORDER BY`**
     Sorts the results of a query.
     ```sql
-    SELECT column_name_a, COUNT(*) AS count
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT nsites, COUNT(*) AS count
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY nsites
     ORDER BY count DESC
     ```
 
@@ -441,13 +441,14 @@ def _(mo):
     - DESC --> descending order
 
     **Putting it all together**
+
     These commands are often combined to answer questions about the data.
 
     For example, to find the most common elements:
     ```sql
-    SELECT column_name_a, COUNT(*) AS count
-    FROM psdi.materials_project.alloy_pairs_flattened
-    GROUP BY column_name_a
+    SELECT formula_pretty, COUNT(*) AS count
+    FROM psdi.materials_project.absorption_flattened
+    GROUP BY formula_pretty
     ORDER BY count DESC
     LIMIT 10
     ```
@@ -689,13 +690,13 @@ def _(mo):
 
 @app.cell
 def _(get_connection):
-    TRINO_HOST_1 = 'trino-dev.psdi.ac.uk'
+    TRINO_HOST_1 = 'trino-staging.psdi.ac.uk'
     with get_connection(TRINO_HOST_1) as conn_1:
         with conn_1.cursor() as cursor_12:
             cursor_12.execute('SHOW SCHEMAS FROM psdi')
             schemas_1 = cursor_12.fetchall()
             print(schemas_1)
-    return (TRINO_HOST_1,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -710,13 +711,6 @@ def _(mo):
     - run `SHOW TABLES FROM <catalog>.<schema>` to check the actual table name,
     - and then inspect columns by running `DESCRIBE <catalog>.<schema_name>.<table_name>`.
     """)
-    return
-
-
-@app.cell
-def _(OAuth2Authentication, TRINO_HOST_1, connect):
-    auth = OAuth2Authentication()
-    conn_2 = connect(host=TRINO_HOST_1, port=443, http_scheme='https', auth=auth, catalog='psdi', request_timeout=300)  # <-- use the named variable
     return
 
 
