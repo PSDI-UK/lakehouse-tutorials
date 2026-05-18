@@ -100,7 +100,7 @@ def _(Backend, OAuth2Authentication, connect):
 
     # Hand the live Trino connection to Ibis
     con = Backend.from_connection(conn)
-    return (con,)
+    return con, conn
 
 
 @app.cell(hide_code=True)
@@ -395,6 +395,22 @@ def _(con):
     result_6 = dielectric_1.select(dielectric_1.material_id)
     df_6 = result_6.to_pandas()
     print(df_6)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 6. Close connection to Trino
+
+    It is good practice to close your connection to Trino when it is not not longer needed, as each open connection holds server-side resources. You can do this by running:
+    """)
+    return
+
+
+@app.cell
+def _(conn):
+    conn.close()
     return
 
 

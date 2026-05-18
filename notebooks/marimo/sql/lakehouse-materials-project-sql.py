@@ -377,5 +377,22 @@ def _(conn, pd):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+    ## 6. Close connection to Trino
+
+    It is good practice to close your connection to Trino when it is not not longer needed, as each open connection holds server-side resources. You can do this by running:
+    """)
+    return
+
+
+@app.cell
+def _(conn):
+    conn.close()
+    return
+
+
 if __name__ == "__main__":
     app.run()
