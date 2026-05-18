@@ -159,7 +159,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 6. List databases (schemas) in a catalog
+    ## 6. List databases in a catalog
     """)
     return
 
@@ -197,7 +197,7 @@ def _(con, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that some schemas contain only one table, for example `omol25`:
+    Note that some databases contain only one table, for example `omol25`:
     """)
     return
 
