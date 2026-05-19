@@ -1,10 +1,16 @@
 # /// script
-# dependencies = ["matplotlib", "pandas", "trino"]
+# requires-python = ">=3.10"
+# dependencies = [
+#     "marimo>=0.23.6",
+#     "matplotlib",
+#     "pandas",
+#     "trino",
+# ]
 # ///
 
 import marimo
 
-__generated_with = "0.23.5"
+__generated_with = "0.23.6"
 app = marimo.App()
 
 
@@ -37,35 +43,48 @@ def _(mo):
     mo.md(r"""
     ## 1. Install and import dependencies
 
-    We will need the Trino Python client to fetch data and `pandas` to manage datasets.
+    We will need the Trino Python client to fetch data, `pandas` to manage datasets and 'matplotlib' for plotting graphs.
+
+    If you are using `uv`, those dependencies can be installed automatically via inline script metadata.
+
+    Either way, the cell below will attempt to import them and install if missing.
     """)
     return
 
 
 @app.cell
 def _():
-    # packages added via marimo's package management: trino pandas matplotlib !pip install -q trino pandas matplotlib
-    return
+    packages = ["trino", "pandas", "matplotlib"]
+
+    try:
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        from trino.dbapi import connect
+        from trino.auth import OAuth2Authentication
+    except ImportError:
+        import shutil
+        import subprocess
+        import sys
+        try:
+            subprocess.run(["uv", "pip", "install", "--python", sys.executable, *packages], check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *packages], check=True)
+    return OAuth2Authentication, connect, pd, plt
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Now let's import the required components:
+    Let's also import `pprint` for clearer output in the tutorial.
     """)
     return
 
 
 @app.cell
 def _():
-    from pprint import pprint  # Used for clearer output in the tutorial
+    from pprint import pprint
 
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    from trino.dbapi import connect
-    from trino.auth import OAuth2Authentication
-
-    return OAuth2Authentication, connect, pd, plt, pprint
+    return (pprint,)
 
 
 @app.cell(hide_code=True)
@@ -91,13 +110,13 @@ def _(OAuth2Authentication, connect):
             catalog="psdi",
             request_timeout=300,
         )
-    
+
         cursor = conn.cursor()
 
         # Validate the connection
         cursor.execute("SHOW SCHEMAS FROM psdi")
         cursor.fetchone()
-    
+
         print("\nConnected to Trino successfully!")
 
     except Exception as e:
@@ -147,8 +166,8 @@ def _(mo):
 
     Examples of table names:
     - `psdi.omol25.omol25`
-    - `psdi.materials_project.absorption_flattened`
-    - `psdi.materials_project.alloys_flattened`
+    - `psdi.materials_project.absorption`
+    - `psdi.materials_project.alloys`
     """)
     return
 
@@ -173,14 +192,14 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ```SQL
-    SELECT formula, band_gap
+    SELECT formula_pretty, bandgap
     FROM psdi.materials_project.materials
-    WHERE band_gap > 1.0
+    WHERE bandgap > 1.0
     LIMIT 5
     ```
     This query:
 
-    - selects the columns `formula` and `band_gap`
+    - selects the columns `formula_pretty` and `bandgap`
     - reads data from the materials table
     - filters rows where the band gap is larger than 1.0
     - returns only the first 5 matching rows
@@ -401,12 +420,12 @@ def _(mo):
 
     ```sql
     SELECT *
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     LIMIT 5
     ```
     ```sql
     SELECT nsites, formula_pretty
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     LIMIT 5
     ```
 
@@ -414,7 +433,7 @@ def _(mo):
     Counts the number of rows in a table or within a group.
     ```sql
     SELECT COUNT(*)
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     ```
 
     **`GROUP BY`**
@@ -424,7 +443,7 @@ def _(mo):
     Example: count how many entries exist for each element:
     ```sql
     SELECT nsites, COUNT(*)
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     GROUP BY nsites
     ```
 
@@ -432,7 +451,7 @@ def _(mo):
     Sorts the results of a query.
     ```sql
     SELECT nsites, COUNT(*) AS count
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     GROUP BY nsites
     ORDER BY count DESC
     ```
@@ -447,7 +466,7 @@ def _(mo):
     For example, to find the most common elements:
     ```sql
     SELECT formula_pretty, COUNT(*) AS count
-    FROM psdi.materials_project.absorption_flattened
+    FROM psdi.materials_project.absorption
     GROUP BY formula_pretty
     ORDER BY count DESC
     LIMIT 10
@@ -495,7 +514,13 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_7:
-        cursor_7.execute('\n    SELECT num_atoms, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY num_atoms\n    ORDER BY num_atoms\n    ')
+        cursor_7.execute("""
+        SELECT num_atoms, COUNT(*)
+        FROM psdi.omol25.omol25
+        GROUP BY num_atoms
+        ORDER BY num_atoms
+        """)
+
         data = cursor_7.fetchall()
         print('Data fetched successfully.')
     return (data,)
@@ -544,7 +569,13 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_8:
-        cursor_8.execute('\n    SELECT charge, COUNT(*)\n    FROM psdi.omol25.omol25\n    GROUP BY charge\n    ORDER BY charge\n    ')
+        cursor_8.execute("""
+        SELECT charge, COUNT(*)
+        FROM psdi.omol25.omol25
+        GROUP BY charge
+        ORDER BY charge
+        """)
+
         for row in cursor_8.fetchall():
             print(row)
     return
@@ -572,7 +603,14 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_9:
-        cursor_9.execute('\n    SELECT composition, COUNT(*) AS count\n    FROM psdi.omol25.omol25\n    GROUP BY composition\n    ORDER BY count DESC\n    LIMIT 5\n    ')
+        cursor_9.execute("""
+        SELECT composition, COUNT(*) AS count
+        FROM psdi.omol25.omol25
+        GROUP BY composition
+        ORDER BY count DESC
+        LIMIT 5
+        """)
+
         for row_1 in cursor_9.fetchall():
             print(row_1)
     return
@@ -599,7 +637,15 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_10:
-        cursor_10.execute('\n    SELECT\n        MIN(nl_energy) AS min_nl,\n        MAX(nl_energy) AS max_nl,\n        AVG(nl_energy) AS avg_nl\n    FROM psdi.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    ')
+        cursor_10.execute("""
+        SELECT
+            MIN(nl_energy) AS min_nl,
+            MAX(nl_energy) AS max_nl,
+            AVG(nl_energy) AS avg_nl
+        FROM psdi.omol25.omol25
+        WHERE nl_energy IS NOT NULL
+        """)
+
         print('Min, max and average energies:')
         print(cursor_10.fetchone())
     return
@@ -621,12 +667,20 @@ def _(mo):
 @app.cell
 def _(conn, pd):
     with conn.cursor() as cursor_11:
-        cursor_11.execute('\n    SELECT composition, nl_energy\n    FROM psdi.omol25.omol25\n    WHERE nl_energy IS NOT NULL\n    LIMIT 100\n    ')
+        cursor_11.execute("""
+        SELECT composition, nl_energy
+        FROM psdi.omol25.omol25
+        WHERE nl_energy IS NOT NULL
+        LIMIT 100
+        """)
+
+        # Load results into a pandas DataFrame
         df = pd.DataFrame(cursor_11.fetchall(), columns=[col[0] for col in cursor_11.description])
-    print(df.head())
+
     # Print top rows
+    print(df.head())
     # Compute average nl_energy per composition (on the sampled data)
-    print(df.groupby('composition')['nl_energy'].mean())  # Load results into a pandas DataFrame
+    print(df.groupby('composition')['nl_energy'].mean())
     return
 
 
@@ -670,7 +724,7 @@ def _(OAuth2Authentication, TRINO_HOST, connect):
             with conn.cursor() as cursor:
                 cursor.execute("SHOW SCHEMAS")
                 cursor.fetchone()
-            
+
             print("\nConnected to Trino successfully!")
             return conn
         except Exception as e:
