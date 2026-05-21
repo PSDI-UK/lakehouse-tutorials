@@ -1,10 +1,15 @@
 # /// script
-# dependencies = ["ibis-framework", "trino"]
+# requires-python = ">=3.10"
+# dependencies = [
+#     "ibis-framework[duckdb,trino]",
+#     "marimo",
+#     "trino",
+# ]
 # ///
 
 import marimo
 
-__generated_with = "0.23.5"
+__generated_with = "0.23.6"
 app = marimo.App()
 
 
@@ -48,40 +53,49 @@ def _(mo):
     ## 2. Install dependencies
 
     In this notebook we will use:
-
-    - `ibis` for the query API,
+    - `ibis` for the query API
     - `trino` for the underlying Trino connection
 
-    You can install them via `pip`:
+    If you are using `uv`, those dependencies can be installed automatically via inline script metadata.
+
+    Either way, the cell below will attempt to import them and install if missing.
     """)
     return
 
 
 @app.cell
 def _():
-    # packages added via marimo's package management: ibis-framework[trino] trino !pip install -q "ibis-framework[trino]" trino
-    return
+    packages = ["ibis-framework[trino]", "trino"]
+
+    try:
+        import ibis
+        from ibis.backends.trino import Backend
+        from trino.dbapi import connect
+        from trino.auth import OAuth2Authentication
+    except ImportError:
+        import shutil
+        import subprocess
+        import sys
+        try:
+            subprocess.run(["uv", "pip", "install", "--python", sys.executable, *packages], check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *packages], check=True)
+    return Backend, OAuth2Authentication, connect
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Now let's import the required components:
+    Let's also import `pprint` for clearer output in the tutorial.
     """)
     return
 
 
 @app.cell
 def _():
-    from pprint import pprint  # Used for clearer output in the tutorial
+    from pprint import pprint
 
-    import ibis
-    from ibis.backends.trino import Backend
-
-    from trino.dbapi import connect
-    from trino.auth import OAuth2Authentication
-
-    return Backend, OAuth2Authentication, connect, pprint
+    return (pprint,)
 
 
 @app.cell(hide_code=True)
@@ -223,7 +237,7 @@ def _(mo):
 
 @app.cell
 def _(con):
-    dielectric_table = con.table("dielectric_flattened", database="materials_project")
+    dielectric_table = con.table("dielectric", database="materials_project")
     return (dielectric_table,)
 
 
@@ -367,7 +381,7 @@ def _(con):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 13.1 Selecting columns
+    ### 13.1 Selecting columns
 
     Select only a subset of columns:
     """)
