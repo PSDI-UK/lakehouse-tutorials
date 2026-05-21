@@ -1,4 +1,4 @@
 .env
 .venv
-notebooks/jupyter/.ipynb_checkpoints/
-notebooks/marimo/__marimo__/
+.ipynb_checkpoints/
+__marimo__/
