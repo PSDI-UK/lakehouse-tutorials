@@ -1,10 +1,17 @@
 # /// script
-# dependencies = ["ibis-framework", "matplotlib", "pandas", "trino"]
+# requires-python = ">=3.10"
+# dependencies = [
+#     "ibis-framework[trino]",
+#     "marimo",
+#     "matplotlib",
+#     "pandas",
+#     "trino",
+# ]
 # ///
 
 import marimo
 
-__generated_with = "0.23.1"
+__generated_with = "0.23.6"
 app = marimo.App()
 
 
@@ -35,40 +42,38 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ---
-    ## 1. Prerequisites
+    ## 1. Install dependencies
 
-    The following command installs the packages required for this notebook via `pip`:
+    In this notebook we will use various Python packages.
+    If you are using `uv`, those dependencies can be installed automatically via inline script metadata.
+
+    Either way, the cell below will attempt to import them and install if missing.
     """)
     return
 
 
 @app.cell
 def _():
-    # packages added via marimo's package management: trino matplotlib pandas ibis-framework[trino] !pip install -q trino matplotlib pandas "ibis-framework[trino]"
-    return
+    packages = ["ibis-framework[trino]", "matplotlib", "pandas", "trino"]
 
+    try: 
+        import ibis
+        from ibis.backends.trino import Backend
+        from trino.dbapi import connect
+        from trino.auth import OAuth2Authentication
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Now import the required resources:
-    """)
-    return
+        import pandas as pd   # Used for clearer output in the tutorial
+        from pprint import pprint  # Used for clearer output in the tutorial
 
-
-@app.cell
-def _():
-    import ibis
-    from ibis.backends.trino import Backend
-
-    from trino.dbapi import connect
-    from trino.auth import OAuth2Authentication
-
-    import pandas as pd   # Used for clearer output in the tutorial
-    from pprint import pprint  # Used for clearer output in the tutorial
-
-    import matplotlib.pyplot as plt
-
+        import matplotlib.pyplot as plt
+    except ImportError:
+        import shutil
+        import subprocess
+        import sys
+        try:
+            subprocess.run(["uv", "pip", "install", "--python", sys.executable, *packages], check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *packages], check=True)
     return Backend, OAuth2Authentication, connect, plt, pprint
 
 

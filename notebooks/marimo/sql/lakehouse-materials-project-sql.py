@@ -1,5 +1,11 @@
 # /// script
-# dependencies = ["matplotlib", "pandas", "trino"]
+# requires-python = ">=3.10"
+# dependencies = [
+#     "marimo",
+#     "matplotlib",
+#     "pandas",
+#     "trino",
+# ]
 # ///
 
 import marimo
@@ -37,33 +43,33 @@ def _(mo):
     ---
     ## 1. Prerequisites
 
-    The following command installs the packages required for this notebook via `pip`:
+    In this notebook we will use various Python packages. 
+    If you are using `uv`, those dependencies can be installed automatically via inline script metadata.
+
+    Either way, the cell below will attempt to import them and install if missing.
     """)
     return
 
-
 @app.cell
 def _():
-    # packages added via marimo's package management: trino matplotlib pandas !pip install -q trino matplotlib pandas
-    return
 
+    packages = ["matplotlib", "pandas", "trino"]
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Now import the required resources:
-    """)
-    return
+    try:
+        from trino.dbapi import connect
+        from trino.auth import OAuth2Authentication
 
+        import pandas as pd
 
-@app.cell
-def _():
-    from trino.dbapi import connect
-    from trino.auth import OAuth2Authentication
-
-    import pandas as pd
-
-    import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
+    except ImportError:
+        import shutil
+        import subprocess
+        import sys
+        try:
+            subprocess.run(["uv", "pip", "install", "--python", sys.executable, *packages], check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", *packages], check=True)
 
     return OAuth2Authentication, connect, pd, plt
 
