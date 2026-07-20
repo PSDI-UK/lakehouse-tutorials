@@ -99,7 +99,7 @@ def _(mo):
 
 @app.cell
 def _(OAuth2Authentication, connect):
-    TRINO_HOST = "trino-staging.psdi.ac.uk"
+    TRINO_HOST = "trino.psdi.ac.uk"
 
     try:
         conn = connect(
@@ -744,7 +744,7 @@ def _(mo):
 
 @app.cell
 def _(get_connection):
-    TRINO_HOST_1 = 'trino-staging.psdi.ac.uk'
+    TRINO_HOST_1 = 'trino.psdi.ac.uk'
     with get_connection(TRINO_HOST_1) as conn_1:
         with conn_1.cursor() as cursor_12:
             cursor_12.execute('SHOW SCHEMAS FROM psdi')

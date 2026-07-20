@@ -110,7 +110,7 @@ def _(mo):
 
 @app.cell
 def _(Backend, OAuth2Authentication, connect):
-    TRINO_HOST = "trino-staging.psdi.ac.uk"
+    TRINO_HOST = "trino.psdi.ac.uk"
 
     conn = connect(
         host=TRINO_HOST,
