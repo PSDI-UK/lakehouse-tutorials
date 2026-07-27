@@ -211,21 +211,6 @@ def _(con, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that some databases contain only one table, for example `omol25`:
-    """)
-    return
-
-
-@app.cell
-def _(con, pprint):
-    tables_1 = con.list_tables(database='omol25')
-    pprint(tables_1)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ## 8. Load a table as an Ibis expression
 
     `con.table(...)` returns an Ibis table expression.
@@ -367,14 +352,14 @@ def _(mo):
 
     Below are some example analytical queries for the OMol25 dataset.
 
-    First let's load the `omol25` table as an Ibis expression:
+    First let's load the `train` table from the `omol25` dataset as an Ibis expression:
     """)
     return
 
 
 @app.cell
 def _(con):
-    omol25_table = con.table("omol25", database="omol25")
+    omol25_table = con.table("train", database="omol25")
     return (omol25_table,)
 
 

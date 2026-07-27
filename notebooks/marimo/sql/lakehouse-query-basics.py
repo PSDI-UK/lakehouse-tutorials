@@ -165,7 +165,7 @@ def _(mo):
     (or `<schema_name>.<table_name>` if the catalog is already set).
 
     Examples of table names:
-    - `psdi.omol25.omol25`
+    - `psdi.omol25.train`
     - `psdi.materials_project.absorption`
     - `psdi.materials_project.alloys`
     """)
@@ -282,23 +282,6 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that some schemas contain only one table, for example `omol25`:
-    """)
-    return
-
-
-@app.cell
-def _(conn, pprint):
-    with conn.cursor() as cursor_3:
-        cursor_3.execute('SHOW TABLES FROM psdi.omol25')
-        tables_1 = cursor_3.fetchall()
-        pprint(tables_1)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ---
     ### 2.6 Explore columns from a specific table
 
@@ -310,7 +293,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_4:
-        cursor_4.execute('DESCRIBE psdi.omol25.omol25')
+        cursor_4.execute('DESCRIBE psdi.omol25.train')
         columns = cursor_4.fetchall()
         pprint(columns)
     return
@@ -341,7 +324,7 @@ def _(mo):
 
     In SQL, the * symbol after `SELECT` means "select all columns" from the table.
 
-    For example, the following query returns a single row from the `psdi.omol25.omol25` table, including all available columns:
+    For example, the following query returns a single row from the `psdi.omol25.train` table, including all available columns:
     """)
     return
 
@@ -349,7 +332,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_5:
-        cursor_5.execute('SELECT * FROM psdi.omol25.omol25 LIMIT 1')
+        cursor_5.execute('SELECT * FROM psdi.omol25.train LIMIT 1')
         rows = cursor_5.fetchall()
         pprint(rows)
     return
@@ -360,7 +343,7 @@ def _(mo):
     mo.md(r"""
     Here:
     - `SELECT *` returns all columns
-    - `FROM psdi.omol25.omol25` specifies the table
+    - `FROM psdi.omol25.train` specifies the table
     - `LIMIT 1` restricts the output to one row only
     """)
     return
@@ -391,7 +374,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_6:
-        cursor_6.execute('SELECT COUNT(*) FROM psdi.omol25.omol25')
+        cursor_6.execute('SELECT COUNT(*) FROM psdi.omol25.train')
         rows_1 = cursor_6.fetchone()  # fetchone() returns a single tuple like (1234,)
         print('Row count:', rows_1[0])
     return
@@ -503,7 +486,7 @@ def _(mo):
     It groups rows by the `num_atoms` column and counts how many molecules fall into each group.
 
     - `SELECT`: Specifies the columns to return. Here, it also calculates the number of occurrences using `COUNT(*)`.
-    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.train`).
     - `GROUP BY num_atoms`: Aggregates rows that have the same number of atoms.
     - `COUNT(*)`: Counts how many rows (molecules) are in each group.
     - `ORDER BY num_atoms`: Sorts the results in ascending order of the number of atoms.
@@ -516,7 +499,7 @@ def _(conn):
     with conn.cursor() as cursor_7:
         cursor_7.execute("""
         SELECT num_atoms, COUNT(*)
-        FROM psdi.omol25.omol25
+        FROM psdi.omol25.train
         GROUP BY num_atoms
         ORDER BY num_atoms
         """)
@@ -558,7 +541,7 @@ def _(mo):
     It groups molecules by the charge column and counts how many molecules fall into each charge category.
 
     - `SELECT`: Specifies the columns to return. Here, it selects the `charge` column and also calculates the number of occurrences using `COUNT(*)`.
-    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.train`).
     - `GROUP BY charge`: Collects all rows with the same charge value.
     - `COUNT(*)`: Computes how many molecules are in each charge group.
     - `ORDER BY charge`: Sorts results from lowest to highest charge.
@@ -571,7 +554,7 @@ def _(conn):
     with conn.cursor() as cursor_8:
         cursor_8.execute("""
         SELECT charge, COUNT(*)
-        FROM psdi.omol25.omol25
+        FROM psdi.omol25.train
         GROUP BY charge
         ORDER BY charge
         """)
@@ -587,12 +570,12 @@ def _(mo):
     ---
     ### 4.3 Most common compositions
 
-    The query retrieves the 20 most frequent values of the composition column from the `psdi.omol25.omol25` table.
+    The query retrieves the 20 most frequent values of the composition column from the `psdi.omol25.train` table.
 
     It uses several standard SQL commands:
 
     - `SELECT`: Specifies the columns to return. Here, it selects `composition` and calculates the number of occurrences using `COUNT(*)`, aliased as `count`.
-    - `FROM`: Indicates the source table (`psdi.omol25.omol25`).
+    - `FROM`: Indicates the source table (`psdi.omol25.train`).
     - `GROUP BY`: Groups rows by composition so that the count can be computed for each unique value.
     - `ORDER BY`: Sorts the results in descending order based on the computed count. `DESC` means the results are ordered from highest to lowest.
     - `LIMIT 5`: Restricts the output to the top 5 results.
@@ -605,7 +588,7 @@ def _(conn):
     with conn.cursor() as cursor_9:
         cursor_9.execute("""
         SELECT composition, COUNT(*) AS count
-        FROM psdi.omol25.omol25
+        FROM psdi.omol25.train
         GROUP BY composition
         ORDER BY count DESC
         LIMIT 5
@@ -622,13 +605,13 @@ def _(mo):
     ---
     ### 4.4 Non-local correlation energy statistics
 
-    This query calculates basic statistics for the non-local correlation energy column, `nl_energy`, in the `psdi.omol25.omol25` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
+    This query calculates basic statistics for the non-local correlation energy column, `nl_energy`, in the `psdi.omol25.train` table. Specifically, it returns the minimum, maximum, and average values, excluding any missing (`NULL`) entries.
 
     1. `SELECT`: Specifies the values to return. Here, it computes aggregate statistics and returns them as aliases `(min_nl, max_nl, avg_nl)`:
         - `MIN(nl_energy)` --> the smallest value
         - `MAX(nl_energy)` --> the largest value
         - `AVG(nl_energy)` --> the average value
-    2. `FROM`: Indicates the source table (`psdi.omol25.omol25`).
+    2. `FROM`: Indicates the source table (`psdi.omol25.train`).
     3. `WHERE`: Filters out rows where `nl_energy` is `NULL`, ensuring that only valid numeric values are used in the calculations.
     """)
     return
@@ -642,7 +625,7 @@ def _(conn):
             MIN(nl_energy) AS min_nl,
             MAX(nl_energy) AS max_nl,
             AVG(nl_energy) AS avg_nl
-        FROM psdi.omol25.omol25
+        FROM psdi.omol25.train
         WHERE nl_energy IS NOT NULL
         """)
 
@@ -659,7 +642,7 @@ def _(mo):
 
     When working with large datasets, it is inefficient to load all rows into memory. Instead, you should perform heavy computations (such as grouping and aggregation) in Trino, and use `pandas` only for lightweight post-processing of the reduced result set.
 
-    The query below retrieves a small sample of rows (non-null `nl_energy` values) from the `psdi.omol25.omol25` table. The result is then loaded into a pandas DataFrame for further analysis.
+    The query below retrieves a small sample of rows (non-null `nl_energy` values) from the `psdi.omol25.train` table. The result is then loaded into a pandas DataFrame for further analysis.
     """)
     return
 
@@ -669,7 +652,7 @@ def _(conn, pd):
     with conn.cursor() as cursor_11:
         cursor_11.execute("""
         SELECT composition, nl_energy
-        FROM psdi.omol25.omol25
+        FROM psdi.omol25.train
         WHERE nl_energy IS NOT NULL
         LIMIT 100
         """)
