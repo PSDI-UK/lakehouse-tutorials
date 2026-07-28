@@ -253,14 +253,6 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that `information_schema` and `system` are system-level schemas and do not contain meaningful user data.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ---
 
     ### 2.5 Listing available tables within a schema
@@ -294,7 +286,7 @@ def _(mo):
 def _(conn):
     with conn.cursor() as cursor_26:
         cursor_26.execute("SELECT value FROM psdi.materials_project.\"absorption$properties\" WHERE key = 'Description'")
-    
+
         info = cursor_26.fetchone()
         print(info)
     return
