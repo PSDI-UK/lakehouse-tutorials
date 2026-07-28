@@ -144,7 +144,7 @@ def _(mo):
     mo.md(r"""
     ### Obtain a description of a table
 
-    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the descripton of the `materials_project.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `materials_project."absorption$properties"`, a table which holds metadata about the `materials_project.absorption` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
+    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the description of the `materials_project.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `materials_project."absorption$properties"`, a table which holds metadata about the `materials_project.absorption` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
     """)
     return
 
