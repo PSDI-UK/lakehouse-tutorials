@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.23.1"
+__generated_with = "0.23.15"
 app = marimo.App()
 
 
@@ -43,12 +43,13 @@ def _(mo):
     ---
     ## 1. Prerequisites
 
-    In this notebook we will use various Python packages. 
+    In this notebook we will use various Python packages.
     If you are using `uv`, those dependencies can be installed automatically via inline script metadata.
 
     Either way, the cell below will attempt to import them and install if missing.
     """)
     return
+
 
 @app.cell
 def _():
@@ -70,7 +71,6 @@ def _():
             subprocess.run(["uv", "pip", "install", "--python", sys.executable, *packages], check=True)
         except (FileNotFoundError, subprocess.CalledProcessError):
             subprocess.run([sys.executable, "-m", "pip", "install", "--user", *packages], check=True)
-
     return OAuth2Authentication, connect, pd, plt
 
 
@@ -100,13 +100,13 @@ def _(OAuth2Authentication, connect):
             catalog="psdi",
             request_timeout=300,
         )
-    
+
         cursor = conn.cursor()
 
         # Validate the connection
         cursor.execute("SHOW SCHEMAS FROM psdi")
         cursor.fetchone()
-    
+
         print("\nConnected to Trino successfully!")
 
     except Exception as e:
@@ -136,6 +136,26 @@ def _(conn, pd):
         cursor_1.execute('SHOW TABLES FROM materials_project')
         df = pd.DataFrame(cursor_1.fetchall(), columns=[col[0] for col in cursor_1.description])
         print(df)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Obtain a description of a table
+
+    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the description of the `materials_project.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `materials_project."absorption$properties"`, a table which holds metadata about the `materials_project.absorption` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
+    """)
+    return
+
+
+@app.cell
+def _(conn):
+    with conn.cursor() as cursor_01:
+        cursor_01.execute("SELECT value FROM materials_project.\"absorption$properties\" WHERE key = 'Description'")
+    
+        info = cursor_01.fetchone()
+        print(info)
     return
 
 

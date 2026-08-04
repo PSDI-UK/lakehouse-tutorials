@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.23.6"
+__generated_with = "0.23.15"
 app = marimo.App()
 
 
@@ -253,14 +253,6 @@ def _(conn, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Note that `information_schema` and `system` are system-level schemas and do not contain meaningful user data.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ---
 
     ### 2.5 Listing available tables within a schema
@@ -283,7 +275,28 @@ def _(conn, pprint):
 def _(mo):
     mo.md(r"""
     ---
-    ### 2.6 Explore columns from a specific table
+    ### 2.6 Obtaining a description of a specific table
+
+    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the description of the `psdi.materials_project.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `psdi.materials_project."absorption$properties"`, a table which holds metadata about the `psdi.materials_project.absorption` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
+    """)
+    return
+
+
+@app.cell
+def _(conn):
+    with conn.cursor() as cursor_26:
+        cursor_26.execute("SELECT value FROM psdi.materials_project.\"absorption$properties\" WHERE key = 'Description'")
+
+        info = cursor_26.fetchone()
+        print(info)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+    ### 2.7 Explore columns from a specific table
 
     To inspect column names and types in the specific table, you can run the `DESCRIBE` command followed by `<schema_name>.<table_name>`, for example:
     """)
@@ -317,7 +330,7 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ---
-    ### 2.7 Previewing data from a table
+    ### 2.8 Previewing data from a table
 
     To inspect a table, it is often useful to display a small number of rows.
     This can be done using the `SELECT` statement together with `LIMIT`.
@@ -353,7 +366,7 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     ---
-    ### 2.8 Counting rows in a table
+    ### 2.9 Counting rows in a table
 
     To count rows, you can use the following command
     ```python
