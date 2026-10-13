@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.23.15"
+__generated_with = "0.25.1"
 app = marimo.App()
 
 
@@ -137,8 +137,8 @@ def _(mo):
     **catalog** --> **schema** --> **table**
 
     - **catalog**: a data source for Trino (in our case, `psdi`)
-    - **schema**: corresponds to a *dataset* (e.g. `omol25`, `materials_project`)
-    - **table**: a structured collection of records within a dataset (e.g. `alloy_pairs`)
+    - **schema**: corresponds to a *dataset* (e.g. `omol25`, `materials_project_build`)
+    - **table**: a structured collection of records within a dataset (e.g. `alloys`)
 
     ---
 
@@ -155,7 +155,7 @@ def _(mo):
 
     Examples of schema names:
     - `psdi.omol25`
-    - `psdi.materials_project`
+    - `psdi.materials_project_build`
 
     ---
 
@@ -166,8 +166,8 @@ def _(mo):
 
     Examples of table names:
     - `psdi.omol25.train`
-    - `psdi.materials_project.absorption`
-    - `psdi.materials_project.alloys`
+    - `psdi.materials_project_build.absorption_v2026_04_13`
+    - `psdi.materials_project_build.alloys_v2026_04_13`
     """)
     return
 
@@ -193,7 +193,7 @@ def _(mo):
     mo.md(r"""
     ```SQL
     SELECT formula_pretty, bandgap
-    FROM psdi.materials_project.materials
+    FROM psdi.materials_project_build.materials_v2026_04_13
     WHERE bandgap > 1.0
     LIMIT 5
     ```
@@ -257,7 +257,7 @@ def _(mo):
 
     ### 2.5 Listing available tables within a schema
 
-    Now let's have a closer look at the tables inside a particular schema, for example `materials_project`.
+    Now let's have a closer look at the tables inside a particular schema, for example `materials_project_build`.
     """)
     return
 
@@ -265,7 +265,7 @@ def _(mo):
 @app.cell
 def _(conn, pprint):
     with conn.cursor() as cursor_2:
-        cursor_2.execute('SHOW TABLES FROM psdi.materials_project')
+        cursor_2.execute('SHOW TABLES FROM psdi.materials_project_build')
         tables = cursor_2.fetchall()
         pprint(tables)
     return
@@ -277,7 +277,7 @@ def _(mo):
     ---
     ### 2.6 Obtaining a description of a specific table
 
-    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the description of the `psdi.materials_project.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `psdi.materials_project."absorption$properties"`, a table which holds metadata about the `psdi.materials_project.absorption` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
+    Each table has an associated `Description` field which contains information about the table, including its license and version. Below is an example of how to extract and print the description of the `psdi.materials_project_build.absorption` table. The syntax reflects the fact that the description is actually stored in a separate table named `psdi.materials_project_build.absorption_v2026_04_13$properties`, a table which holds metadata about the `psdi.materials_project_build.absorption_v2026_04_13` table as key-value pairs. Specifically, the description is stored in the value linked to the `Description` key.
     """)
     return
 
@@ -285,7 +285,7 @@ def _(mo):
 @app.cell
 def _(conn):
     with conn.cursor() as cursor_26:
-        cursor_26.execute("SELECT value FROM psdi.materials_project.\"absorption$properties\" WHERE key = 'Description'")
+        cursor_26.execute("SELECT value FROM psdi.materials_project_build.\"absorption_v2026_04_13$properties\" WHERE key = 'Description'")
 
         info = cursor_26.fetchone()
         print(info)
@@ -416,12 +416,12 @@ def _(mo):
 
     ```sql
     SELECT *
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     LIMIT 5
     ```
     ```sql
     SELECT nsites, formula_pretty
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     LIMIT 5
     ```
 
@@ -429,7 +429,7 @@ def _(mo):
     Counts the number of rows in a table or within a group.
     ```sql
     SELECT COUNT(*)
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     ```
 
     **`GROUP BY`**
@@ -439,7 +439,7 @@ def _(mo):
     Example: count how many entries exist for each element:
     ```sql
     SELECT nsites, COUNT(*)
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     GROUP BY nsites
     ```
 
@@ -447,7 +447,7 @@ def _(mo):
     Sorts the results of a query.
     ```sql
     SELECT nsites, COUNT(*) AS count
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     GROUP BY nsites
     ORDER BY count DESC
     ```
@@ -462,7 +462,7 @@ def _(mo):
     For example, to find the most common elements:
     ```sql
     SELECT formula_pretty, COUNT(*) AS count
-    FROM psdi.materials_project.absorption
+    FROM psdi.materials_project_build.absorption_v2026_04_13
     GROUP BY formula_pretty
     ORDER BY count DESC
     LIMIT 10

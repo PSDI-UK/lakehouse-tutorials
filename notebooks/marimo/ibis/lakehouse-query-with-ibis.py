@@ -9,7 +9,7 @@
 
 import marimo
 
-__generated_with = "0.23.15"
+__generated_with = "0.25.1"
 app = marimo.App()
 
 
@@ -203,7 +203,7 @@ def _(mo):
 
 @app.cell
 def _(con, pprint):
-    tables = con.list_tables(database="materials_project")
+    tables = con.list_tables(database="materials_project_build")
     pprint(tables)
     return
 
@@ -213,14 +213,14 @@ def _(mo):
     mo.md(r"""
     ### 7.1 Table metadata
 
-    For each table there is an associated 'hidden' table which stores metadata related to the table. To obtain the name of a table's associated metadata table, simply add `$properties` to the table's name. E.g. `absorption`'s metadata is stored in the `absorption$properties` table. Most likely the only metadata you might need to view for a table would be its `Description`, which contains general information about the table, including its license. The example below demonstrates how to retrieve the `Description` of the `absorption` table.
+    For each table there is an associated 'hidden' table which stores metadata related to the table. To obtain the name of a table's associated metadata table, simply add `$properties` to the table's name. E.g. `absorption_v2026_04_13`'s metadata is stored in the `absorption_v2026_04_13$properties` table. Most likely the only metadata you might need to view for a table would be its `Description`, which contains general information about the table, including its license. The example below demonstrates how to retrieve the `Description` of the `absorption_v2026_04_13` table.
     """)
     return
 
 
 @app.cell
 def _(con):
-    properties = con.table('absorption$properties', database="materials_project")
+    properties = con.table('absorption_v2026_04_13$properties', database="materials_project_build")
     description = properties.filter(properties.key == "Description").select("value").execute().iloc[0,0]
     print(description)
     return
@@ -240,7 +240,7 @@ def _(mo):
 
 @app.cell
 def _(con):
-    dielectric_table = con.table("dielectric", database="materials_project")
+    dielectric_table = con.table("dielectric_v2026_04_13", database="materials_project_build")
     return (dielectric_table,)
 
 

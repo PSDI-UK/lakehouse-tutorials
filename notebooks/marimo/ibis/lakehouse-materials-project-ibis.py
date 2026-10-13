@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.23.15"
+__generated_with = "0.25.1"
 app = marimo.App()
 
 
@@ -136,18 +136,18 @@ def _(mo):
     ---
     ## 3. Exploring the data
 
-    Here we use the Materials Project's [AWS Open Data](https://materialsproject-build.s3.amazonaws.com/index.html). To elaborate, PSDI has taken various 'collections' of the [build data](https://materialsproject-build.s3.amazonaws.com/index.html) (which is provided in JSONL format) and converted them in to tables. (See [here](https://materialsproject-build.s3.amazonaws.com/index.html#collections/) to see the list of collections). We will query those tables.
+    Here we use the Materials Project's [AWS Open Data](https://materialsproject-build.s3.amazonaws.com/index.html). To elaborate, PSDI has taken various 'collections' of the [build data](https://materialsproject-build.s3.amazonaws.com/index.html) (which is provided in Parquet format) and converted them in to tables. (See [here](https://materialsproject-build.s3.amazonaws.com/index.html#collections/) to see the list of collections). We will query those tables.
 
-    Various 'catalogs' are available through PSDI's Trino. The tables pertinent to this notebook are located in the `materials_project` database (where 'database' in this context means 'collection of tables') within the `psdi` catalog. Note that each table in the `materials_project` database corresponds to a 'collection' in the [build data](https://materialsproject-build.s3.amazonaws.com/index.html); e.g. the `absorption` table corresponds to the `absorption` collection.
+    Various 'catalogs' are available through PSDI's Trino. The tables pertinent to this notebook are located in the `materials_project_build` database (where 'database' in this context means 'collection of tables') within the `psdi` catalog. Note that each table in the `materials_project_build` database corresponds to a 'collection' in the [build data](https://materialsproject-build.s3.amazonaws.com/index.html); e.g. the `absorption_v2026_04_13` table corresponds to the `absorption` collection published by the Materials Project on 13 April 2026.
 
-    The following code lists all the tables in the `materials_project` database.
+    The following code lists all the tables in the `materials_project_build` database.
     """)
     return
 
 
 @app.cell
 def _(con, pprint):
-    tables = con.list_tables(database="materials_project")
+    tables = con.list_tables(database="materials_project_build")
     pprint(tables)
     return
 
@@ -162,23 +162,23 @@ def _(mo):
 
 @app.cell
 def _(con):
-    dielectric_table = con.table("dielectric", database="materials_project")
+    dielectric_table = con.table("dielectric_v2026_04_13", database="materials_project_build")
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
+    mo.md(rf"""
     ### List columns in a table
 
-    The *schema* of a table, i.e. its column names and data types (and often other information about columns) can be determined using `.schema()`. Below we use this to retrieve the schema of the `absorption` table.
+    The *schema* of a table, i.e. its column names and data types (and often other information about columns) can be determined using `.schema()`. Below we use this to retrieve the schema of the `absorption_v2026_04_13` table.
     """)
     return
 
 
 @app.cell
 def _(con):
-    absorption_table = con.table("absorption", database="materials_project")
+    absorption_table = con.table("absorption_v2026_04_13", database="materials_project_build")
     print(absorption_table.schema())
     return
 
@@ -188,14 +188,14 @@ def _(mo):
     mo.md(r"""
     ### Obtain information about a table
 
-    For each table there is an associated 'hidden' table which stores metadata related to the table. To obtain the name of a table's associated metadata table, simply add `$properties` to the table's name. E.g. `absorption`'s metadata is stored in the `absorption$properties` table. Most likely the only metadata you might need to view for a table would be its `Description`, which contains general information about the table, including its license. The example below demonstrates how to retrieve the `Description` of the `absorption` table.
+    For each table there is an associated 'hidden' table which stores metadata related to the table. To obtain the name of a table's associated metadata table, simply add `$properties` to the table's name. E.g. `absorption_v2026_04_13`'s metadata is stored in the `absorption_v2026_04_13$properties` table. Most likely the only metadata you might need to view for a table would be its `Description`, which contains general information about the table, including its licence. The example below demonstrates how to retrieve the `Description` of the `absorption_v2026_04_13` table.
     """)
     return
 
 
 @app.cell
 def _(con):
-    properties = con.table('absorption$properties', database="materials_project")
+    properties = con.table('absorption_v2026_04_13$properties', database="materials_project_build")
     description = properties.filter(properties.key == "Description").select("value").execute().iloc[0,0]
     print(description)
     return
@@ -217,7 +217,7 @@ def _(mo):
     mo.md(r"""
     ### Plotting data from a single table
 
-    Below are code snippets which plot two columns from the `absorption` table. First we plot `bandgap` versus `density`.
+    Below are code snippets which plot two columns from the `absorption_v2026_04_13` table. First we plot `bandgap` versus `density`.
 
     Note that we are using `select` to filter out only the pertinent columns of the table, and `to_pandas()` to export the result of the filter to a Pandas DataFrame. Data in the DataFrame is then plotted. We do this a lot in the rest of this notebook.
     """)
@@ -226,7 +226,7 @@ def _(mo):
 
 @app.cell
 def _(con, plt):
-    absorption_table_1 = con.table('absorption', database='materials_project')
+    absorption_table_1 = con.table('absorption_v2026_04_13', database='materials_project_build')
     result = absorption_table_1.select('density', 'bandgap')
     df = result.to_pandas()
     plt.scatter(df['density'].tolist(), df['bandgap'].tolist(), color='blue', marker='o')
@@ -247,7 +247,7 @@ def _(mo):
 
 @app.cell
 def _(con, plt):
-    absorption_table_2 = con.table('absorption', database='materials_project')
+    absorption_table_2 = con.table('absorption_v2026_04_13', database='materials_project_build')
     result_1 = absorption_table_2.select('density', 'energy_max')
     df_1 = result_1.to_pandas()
     plt.scatter(df_1['density'].tolist(), df_1['energy_max'].tolist(), color='blue', marker='o')
@@ -265,15 +265,15 @@ def _(mo):
 
     Using a [SQL join](https://en.wikipedia.org/wiki/Join_(SQL)) operation over the `material_id` field we can combine data spread across many tables.
 
-    Below we plot the `density` (renamed as `rho`) obtained from the `absorption` table versus the density from the `magnetism` table - for all structures which appear in both tables.
+    Below we plot the `density` (renamed as `rho`) obtained from the `absorption_v2026_04_13` table versus the density from the `magnetism_v2026_04_13` table - for all structures which appear in both tables.
     """)
     return
 
 
 @app.cell
 def _(con, plt):
-    absorption = con.table('absorption', database='materials_project')
-    magnetism = con.table('magnetism', database='materials_project')
+    absorption = con.table('absorption_v2026_04_13', database='materials_project_build')
+    magnetism = con.table('magnetism_v2026_04_13', database='materials_project_build')
     result_2 = absorption.join(magnetism, absorption.material_id == magnetism.material_id, how='inner').select(absorption.density.name('absorption_rho'), magnetism.density.name('magnetism_rho'))
     df_2 = result_2.to_pandas()
     plt.scatter(df_2['absorption_rho'].tolist(), df_2['magnetism_rho'].tolist(), color='blue', marker='o')
@@ -295,16 +295,16 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Below we similarly plot the `density` obtained from the `absorption` table against the `bulk_modulus.voigt` property (renamed as `bulk_modulus`) in the `elasticity` table.
+    Below we similarly plot the `density` obtained from the `absorption_v2026_04_13` table against the `bulk_modulus.voigt` property (where the ''`.`'' here signifies that `voigt` is a property *within* the `bulk_modulus` property)  (renamed as `bulk_modulus`) in the `elasticity_v2026_04_13` table.
     """)
     return
 
 
 @app.cell
 def _(con, plt):
-    absorption_1 = con.table('absorption', database='materials_project')
-    elasticity = con.table('elasticity', database='materials_project')
-    result_3 = absorption_1.join(elasticity, absorption_1.material_id == elasticity.material_id, how='inner').filter(elasticity['bulk_modulus.voigt'].notnull()).select(absorption_1.density.name('density'), elasticity['bulk_modulus.voigt'].name('bulk_modulus'))
+    absorption_1 = con.table('absorption_v2026_04_13', database='materials_project_build')
+    elasticity = con.table('elasticity_v2026_04_13', database='materials_project_build')
+    result_3 = absorption_1.join(elasticity, absorption_1.material_id == elasticity.material_id, how='inner').filter(elasticity['bulk_modulus']['voigt'].notnull()).select(absorption_1.density.name('density'), elasticity['bulk_modulus']['voigt'].name('bulk_modulus'))
     df_3 = result_3.to_pandas()
     plt.scatter(df_3['density'].tolist(), df_3['bulk_modulus'].tolist(), color='blue', marker='o')
     plt.title('Young modulus vs. density')
@@ -346,14 +346,14 @@ def _(mo):
         }
     ```
 
-    Below is an analogous Ibis query for the `dielectic` dataset. Note that I have exploited a regex to catch only the element symbol 'O' instead of using the glob pattern `%O%` which might match the element symbol 'Os' or 'Og'.
+    Below is an analogous Ibis query for the `dielectic_v2026_04_13` dataset. Note that I have exploited a regex to catch only the element symbol 'O' instead of using the glob pattern `%O%` which might match the element symbol 'Os' or 'Og'.
     """)
     return
 
 
 @app.cell
 def _(con):
-    dielectric = con.table('dielectric', database='materials_project')
+    dielectric = con.table('dielectric_v2026_04_13', database='materials_project_build')
     result_4 = dielectric.filter(dielectric.formula_pretty.like('%Si%') & dielectric.formula_pretty.re_search('.*O[0-9]+.*')).select(dielectric.formula_pretty, dielectric.material_id)
     df_4 = result_4.to_pandas()
     print(df_4)
@@ -377,14 +377,14 @@ def _(mo):
         mpid_bgap_dict = {doc.material_id: doc.band_gap for doc in docs}
     ```
 
-    Below is an analogous query for the `absorption` data set. Note that we are using regular expression searches to find chemical formulae which contain`Si` and `O` (but not `Os` or `Og`).
+    Below is an analogous query for the `absorption_v2026_04_13` data set. Note that we are using regular expression searches to find chemical formulae which contain`Si` and `O` (but not `Os` or `Og`).
     """)
     return
 
 
 @app.cell
 def _(con):
-    absorption_2 = con.table('absorption', database='materials_project')
+    absorption_2 = con.table('absorption_v2026_04_13', database='materials_project_build')
     result_5 = absorption_2.filter(absorption_2.formula_pretty.re_search('Si') & absorption_2.formula_pretty.re_search('O[^sg]*')).select(absorption_2.formula_pretty, absorption_2.material_id, absorption_2.bandgap)
     df_5 = result_5.to_pandas()
     print(df_5)
@@ -414,7 +414,7 @@ def _(mo):
 
 @app.cell
 def _(con):
-    dielectric_1 = con.table('dielectric', database='materials_project')
+    dielectric_1 = con.table('dielectric_v2026_04_13', database='materials_project_build')
     result_6 = dielectric_1.select(dielectric_1.material_id)
     df_6 = result_6.to_pandas()
     print(df_6)
