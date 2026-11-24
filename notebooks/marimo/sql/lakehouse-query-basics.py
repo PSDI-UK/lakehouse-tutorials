@@ -138,7 +138,7 @@ def _(mo):
 
     - **catalog**: a data source for Trino (in our case, `psdi`)
     - **schema**: corresponds to a *dataset* (e.g. `omol25`, `materials_project_build`)
-    - **table**: a structured collection of records within a dataset (e.g. `alloys`)
+    - **table**: a structured collection of records within a dataset (e.g. `alloys_v2026_04_13`)
 
     ---
 
