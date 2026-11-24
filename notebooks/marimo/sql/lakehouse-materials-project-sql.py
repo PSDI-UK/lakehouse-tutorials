@@ -121,7 +121,7 @@ def _(mo):
     ---
     ## 3. Exploring the data
 
-    Here we use the Materials Project's [AWS Open Data](https://materialsproject-build.s3.amazonaws.com/index.html). To elaborate, PSDI has taken various 'collections' of the [build data](https://materialsproject-build.s3.amazonaws.com/index.html) (which is provided in Parquet format) and converted them into tables. (See [here](https://materialsproject-build.s3.amazonaws.com/index.html#collections/) to see the list of collections). We will query those tables.
+    Here we use the Materials Project's [AWS Open Data](https://materialsproject-build.s3.amazonaws.com/index.html). To elaborate, PSDI has taken various 'collections' of the [build data](https://materialsproject-build.s3.amazonaws.com/index.html) (which is provided in Parquet format) and converted them into [Apache Iceberg](https://iceberg.apache.org/) tables. (See [here](https://materialsproject-build.s3.amazonaws.com/index.html#collections/) to see the list of collections). We will query those tables.
 
     Various 'catalogs' are available through PSDI's Trino. The tables pertinent to this notebook are located in the `materials_project_build` 'schema' (where 'schema' in this context means 'collection of tables') within the `psdi` catalog. Note that each table in the `materials_project_build` schema corresponds to a 'collection' in the [build data](https://materialsproject-build.s3.amazonaws.com/index.html); e.g. the `absorption_v2026_04_13` table corresponds to the `absorption` collection published by the Materials Project on 13 April 2026.
 
